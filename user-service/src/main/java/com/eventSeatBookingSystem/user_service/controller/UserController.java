@@ -1,5 +1,7 @@
 package com.eventSeatBookingSystem.user_service.controller;
 
+import com.eventSeatBookingSystem.user_service.dto.LoginRequestDto;
+import com.eventSeatBookingSystem.user_service.dto.LoginResponseDto;
 import com.eventSeatBookingSystem.user_service.dto.UserRequestDto;
 import com.eventSeatBookingSystem.user_service.dto.UserResponseDto;
 import com.eventSeatBookingSystem.user_service.service.UserService;
@@ -10,6 +12,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.catalina.User;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,24 +32,27 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserResponseDto> loginUser(@Valid @RequestBody UserRequestDto requestDto){
-        UserResponseDto responseDto = userService.loginUser(requestDto);
+    public ResponseEntity<LoginResponseDto> loginUser(@Valid @RequestBody LoginRequestDto requestDto){
+        LoginResponseDto responseDto = userService.loginUser(requestDto);
         return ResponseEntity.ok(responseDto);
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponseDto>>  getAllUser(){
         List<UserResponseDto> responseDto = userService.getAllUser();
         return ResponseEntity.ok(responseDto);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id){
         UserResponseDto responseDto = userService.getUserById(id);
         return ResponseEntity.ok(responseDto);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserResponseDto > updateUser(@PathVariable Long id,
                                                        @Valid @RequestBody UserRequestDto userRequestDto){
         UserResponseDto responseDto = userService.updateUser(id, userRequestDto);
@@ -54,6 +60,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<UserResponseDto> patchUser(@PathVariable Long id,
                                                      @RequestBody UserRequestDto userRequestDto){
        UserResponseDto responseDto = userService.patchUser(id,userRequestDto);
@@ -61,6 +68,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String > deleteUser(@PathVariable Long id ){
         userService.deleteUser(id);
         return ResponseEntity.ok("User deleted successfully");

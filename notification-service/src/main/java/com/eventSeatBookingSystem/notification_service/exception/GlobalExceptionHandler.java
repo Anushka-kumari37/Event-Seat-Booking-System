@@ -5,6 +5,7 @@ package com.eventSeatBookingSystem.notification_service.exception;
 import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -22,6 +23,20 @@ public class GlobalExceptionHandler {
             NotificationNotFoundException exception) {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+    }
+
+    //UNAUTHORIZED ACCESS
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDeniedException(
+            AccessDeniedException exception) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        response.put("status", HttpStatus.FORBIDDEN.value());
+        response.put("error", "Forbidden");
+        response.put("message", "You are not authorized");
+
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
     // NO NOTIFICATIONS FOUND

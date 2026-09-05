@@ -1,14 +1,19 @@
 package com.eventSeatBookingSystem.user_service.service;
 
+import com.eventSeatBookingSystem.user_service.dto.LoginRequestDto;
+import com.eventSeatBookingSystem.user_service.dto.LoginResponseDto;
 import com.eventSeatBookingSystem.user_service.dto.UserRequestDto;
 import com.eventSeatBookingSystem.user_service.dto.UserResponseDto;
 import com.eventSeatBookingSystem.user_service.entity.Role;
 import com.eventSeatBookingSystem.user_service.entity.User;
 import com.eventSeatBookingSystem.user_service.exception.InvalidCredentialsException;
+import com.eventSeatBookingSystem.user_service.exception.UserEmailAlreadyExists;
 import com.eventSeatBookingSystem.user_service.exception.UserNotFoundException;
 import com.eventSeatBookingSystem.user_service.repository.UserRepository;
+import com.eventSeatBookingSystem.user_service.security.JwtService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -19,13 +24,19 @@ import java.util.List;
 public class UserService {
 
     private UserRepository userRepository;
+    private PasswordEncoder passwordEncoder;
+    private JwtService jwtService;
 
     public UserResponseDto registerUser(@Valid UserRequestDto userRequestDto) {
+
+        if (userRepository.existsByEmail(userRequestDto.getEmail())) {
+            throw new UserEmailAlreadyExists("Email already registered");
+        }
 
         User user = new User();
 
         user.setName(userRequestDto.getName());
-        user.setPassword(userRequestDto.getPassword());
+        user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         user.setEmail(userRequestDto.getEmail());
         user.setPhoneNo(userRequestDto.getPhoneNo());
         user.setCreatedAt(LocalDateTime.now());
@@ -50,16 +61,24 @@ public class UserService {
         return responseDto;
     }
 
-    public UserResponseDto loginUser(@Valid UserRequestDto requestDto) {
+    public LoginResponseDto loginUser(@Valid LoginRequestDto requestDto) {
 
-        User user = userRepository.findByName(requestDto.getName())
+        User user = userRepository.findByEmail(requestDto.getEmail())
                 .orElseThrow(() ->
                         new InvalidCredentialsException(
-                                "Invalid username or password"
-                        )
+                                "Invalid email  or password")
                 );
+        if(!passwordEncoder.matches(requestDto.getPassword(), user.getPassword())) {
+            throw new InvalidCredentialsException("Invalid password or email");
+        }
 
-        return null;
+        String token= jwtService.generateToken(user.getEmail(),user.getRole().name());
+
+        return new LoginResponseDto(token,
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getRole());
     }
 
     public List<UserResponseDto> getAllUser() {

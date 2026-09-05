@@ -3,6 +3,7 @@ package com.eventSeatBookingSystem.seat_service.exception;
 import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -152,6 +153,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.METHOD_NOT_ALLOWED)
                 .body("HTTP method not allowed for this endpoint");
+    }
+
+    //ACCEESS DENIED
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDeniedException(
+            AccessDeniedException exception) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        response.put("status", HttpStatus.FORBIDDEN.value());
+        response.put("error", "Forbidden");
+        response.put("message", "You are not authorized");
+
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 
     // GENERAL EXCEPTION

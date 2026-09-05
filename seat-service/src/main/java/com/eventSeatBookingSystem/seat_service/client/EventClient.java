@@ -1,12 +1,13 @@
 package com.eventSeatBookingSystem.seat_service.client;
 
+import com.eventSeatBookingSystem.seat_service.config.FeignClientConfig;
 import com.eventSeatBookingSystem.seat_service.dto.EventResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 
-@FeignClient(name = "event-service")
+@FeignClient(name = "event-service",configuration = FeignClientConfig.class)
 public interface EventClient {
 
     @GetMapping("/api/events/{id}")

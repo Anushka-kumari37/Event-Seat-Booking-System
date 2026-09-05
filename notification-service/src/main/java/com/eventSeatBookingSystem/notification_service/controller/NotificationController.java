@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class NotificationController {
 
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<NotificationResponseDto> createNotification(@Valid @RequestBody NotificationRequestDto
                                                                                   notificationRequestDto) {
         NotificationResponseDto notificationResponseDto = notificationService
@@ -28,18 +30,21 @@ public class NotificationController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<NotificationResponseDto>> getAllNotifications() {
         List<NotificationResponseDto> notificationResponseDto = notificationService.getAllNotification();
         return ResponseEntity.ok(notificationResponseDto);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<NotificationResponseDto> getNotification(@PathVariable Long id) {
         NotificationResponseDto responseDto = notificationService.getNotificationById(id);
         return ResponseEntity.ok(responseDto);
     }
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<List<NotificationResponseDto>> getNotificationsByUserId(@PathVariable Long userId) {
         List<NotificationResponseDto> notificationResponseDto =
                 notificationService.getNotificationByUser(userId);
@@ -47,6 +52,7 @@ public class NotificationController {
     }
 
     @GetMapping("/booking/{bookingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<NotificationResponseDto>> getNotificationsByBookingId
             (@PathVariable Long bookingId) {
         List<NotificationResponseDto> notificationResponseDto =
@@ -55,12 +61,14 @@ public class NotificationController {
     }
 
     @PatchMapping("/{id}/read")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<NotificationResponseDto> readNotification(@PathVariable Long id) {
         NotificationResponseDto responseDto = notificationService.markAsRead(id);
         return ResponseEntity.ok(responseDto);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<String> deleteNotification(@PathVariable Long id) {
         notificationService.deleteNotification(id);
         return ResponseEntity.ok("Notification deleted successfully");
