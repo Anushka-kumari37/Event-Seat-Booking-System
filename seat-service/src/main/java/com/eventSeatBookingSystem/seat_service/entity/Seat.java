@@ -1,10 +1,7 @@
 package com.eventSeatBookingSystem.seat_service.entity;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,11 +19,11 @@ public class Seat {
     private Long id;
 
     private  Long eventId;
-
+    @Enumerated(EnumType.STRING)
     private SeatType seatType;
 
     private  Double price;
-
+    @Enumerated(EnumType.STRING)
     private Status status;
     private String seatNumber;
 }

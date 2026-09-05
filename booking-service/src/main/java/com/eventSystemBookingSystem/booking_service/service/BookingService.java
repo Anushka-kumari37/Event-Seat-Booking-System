@@ -6,7 +6,11 @@ import com.eventSystemBookingSystem.booking_service.client.UserClient;
 import com.eventSystemBookingSystem.booking_service.dto.*;
 import com.eventSystemBookingSystem.booking_service.entity.Booking;
 import com.eventSystemBookingSystem.booking_service.entity.BookingStatus;
+import com.eventSystemBookingSystem.booking_service.exception.BookingAlreadyCancelledException;
+import com.eventSystemBookingSystem.booking_service.exception.BookingNotFoundException;
+import com.eventSystemBookingSystem.booking_service.exception.NoBookingsFoundException;
 import com.eventSystemBookingSystem.booking_service.repository.BookingRepository;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +27,7 @@ public class BookingService {
     private final UserClient userClient;
     private final SeatClient seatClient;
 
-    public BookingResponseDto createBooking(BookingRequestDto bookingRequestDto) {
+    public BookingResponseDto createBooking(@Valid BookingRequestDto bookingRequestDto) {
 
         UserResponseDto user = userClient.getUser(bookingRequestDto.getUserId());
         EventResponseDto event = eventClient.getEvent(bookingRequestDto.getEventId());
@@ -61,7 +65,7 @@ public class BookingService {
     public List<BookingResponseDto> getAllBooking() {
         List<Booking> book = bookingRepository.findAll();
         if(book.isEmpty()){
-            throw new RuntimeException("booking not found");
+            throw new NoBookingsFoundException("booking not found");
         }
         return book.stream().map(this::ConvertToDto).toList();
     }
@@ -69,14 +73,14 @@ public class BookingService {
 
     public BookingResponseDto getBookingById(Long id) {
         Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("booking not found"));
+                .orElseThrow(() -> new BookingNotFoundException("booking not found"));
         return ConvertToDto(booking);
     }
 
     public List<BookingResponseDto> getBookingByUserId(Long userId) {
         List<Booking> booking = bookingRepository.findByUserId(userId);
         if(booking.isEmpty()){
-            throw new RuntimeException("booking not found with this user "+userId);
+            throw new NoBookingsFoundException("booking not found with this user "+userId);
         }
         return booking.stream().map(this::ConvertToDto).toList();
     }
@@ -84,24 +88,24 @@ public class BookingService {
     public List<BookingResponseDto> getBookingsByEventId(Long eventId) {
         List<Booking> booking = bookingRepository.findByEventId(eventId);
         if(booking.isEmpty()){
-            throw new RuntimeException("booking not found with this user "+eventId);
+            throw new NoBookingsFoundException("booking not found with this user "+eventId);
         }
         return booking.stream().map(this::ConvertToDto).toList();
     }
 
     public void deleteBooking(Long id) {
         Booking booking =  bookingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("booking not found"));
+                .orElseThrow(() -> new BookingNotFoundException("booking not found"));
         bookingRepository.delete(booking);
 
     }
 
-    public BookingResponseDto cancelBooking(Long id, BookingRequestDto bookingRequestDto) {
+    public BookingResponseDto cancelBooking(Long id) {
 
         Booking booking =  bookingRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("booking not found"));
+                .orElseThrow(() -> new BookingNotFoundException("booking not found"));
         if(booking.getBookingStatus().equals(BookingStatus.CANCELLED)){
-            throw new RuntimeException("booking is already cancelled");
+            throw new BookingAlreadyCancelledException("booking is already cancelled");
         }
         booking.setBookingStatus(BookingStatus.CANCELLED);
         Booking booking1 =bookingRepository.save(booking);

@@ -4,6 +4,7 @@ import com.eventSeatBookingSystem.payment_service.dto.PaymentRequestDto;
 import com.eventSeatBookingSystem.payment_service.dto.PaymentResponseDto;
 import com.eventSeatBookingSystem.payment_service.entity.PaymentStatus;
 import com.eventSeatBookingSystem.payment_service.service.PaymentService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class PaymentController {
 
 
     @PostMapping
-    public ResponseEntity<PaymentResponseDto> createPayment(@RequestBody PaymentRequestDto paymentRequestDto) {
+    public ResponseEntity<PaymentResponseDto> createPayment(@Valid @RequestBody PaymentRequestDto paymentRequestDto) {
         PaymentResponseDto responseDto = paymentService.createPayment(paymentRequestDto);
         return ResponseEntity.ok(responseDto);
     }
@@ -36,7 +37,7 @@ public class PaymentController {
         return ResponseEntity.ok(responseDto);
     }
 
-    @GetMapping("/booking/{id}")
+    @GetMapping("/booking/{bookingId}")
     public  ResponseEntity<List<PaymentResponseDto>> getPaymentsByBookingId(@PathVariable Long bookingId) {
         List<PaymentResponseDto> responseDto = paymentService.getPaymentByBooking(bookingId);
         return ResponseEntity.ok(responseDto);
@@ -49,23 +50,20 @@ public class PaymentController {
     }
 
     @PatchMapping("/update/{id}")
-    public ResponseEntity<PaymentResponseDto> updatePaymentStatus(@PathVariable Long id,
-                                                            @RequestBody PaymentRequestDto paymentRequestDto) {
-        PaymentResponseDto responseDto = paymentService.updatePaymentStatus(id,paymentRequestDto);
+    public ResponseEntity<PaymentResponseDto> updatePaymentStatus(@PathVariable Long id) {
+        PaymentResponseDto responseDto = paymentService.updatePaymentStatus(id);
         return ResponseEntity.ok(responseDto);
     }
 
     @PatchMapping("/refund/{id}")
-    public ResponseEntity<PaymentResponseDto> refundPayment(@PathVariable Long id,
-                                                            @RequestBody PaymentRequestDto paymentRequestDto) {
-        PaymentResponseDto responseDto = paymentService.refundPayment(id, paymentRequestDto);
+    public ResponseEntity<PaymentResponseDto> refundPayment(@PathVariable Long id) {
+        PaymentResponseDto responseDto = paymentService.refundPayment(id);
         return ResponseEntity.ok(responseDto);
     }
 
     @PatchMapping("/failed/{id}")
-    public ResponseEntity<PaymentResponseDto> failedPayment(@PathVariable Long id,
-                                                            @RequestBody PaymentRequestDto paymentRequestDto) {
-        PaymentResponseDto responseDto = paymentService.failedPayment(id, paymentRequestDto);
+    public ResponseEntity<PaymentResponseDto> failedPayment(@PathVariable Long id) {
+        PaymentResponseDto responseDto = paymentService.failedPayment(id);
         return ResponseEntity.ok(responseDto);
     }
 }

@@ -4,6 +4,7 @@ package com.eventSystemBookingSystem.booking_service.controller;
 import com.eventSystemBookingSystem.booking_service.dto.BookingRequestDto;
 import com.eventSystemBookingSystem.booking_service.dto.BookingResponseDto;
 import com.eventSystemBookingSystem.booking_service.service.BookingService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class BookingController {
     private  final BookingService bookingService;
 
     @PostMapping
-    public ResponseEntity<BookingResponseDto> createBooking(@RequestBody BookingRequestDto bookingRequestDto) {
+    public ResponseEntity<BookingResponseDto> createBooking(@Valid @RequestBody BookingRequestDto bookingRequestDto) {
         BookingResponseDto bookingResponseDto = bookingService.createBooking(bookingRequestDto);
         return ResponseEntity.ok(bookingResponseDto);
     }
@@ -41,16 +42,15 @@ public class BookingController {
         return ResponseEntity.ok(bookingResponseDto);
     }
 
-    @GetMapping("/event/{id}")
+    @GetMapping("/event/{eventId}")
     public ResponseEntity<List<BookingResponseDto>> getBookingByEventId(@PathVariable Long eventId) {
         List<BookingResponseDto> bookingResponseDto = bookingService.getBookingsByEventId(eventId);
         return ResponseEntity.ok(bookingResponseDto);
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<BookingResponseDto>  cancelBooking(@PathVariable Long id,
-                                                             @RequestBody BookingRequestDto bookingRequestDto) {
-        BookingResponseDto bookingResponseDto = bookingService.cancelBooking(id,bookingRequestDto);
+    @PatchMapping("/cancel/{id}")
+    public ResponseEntity<BookingResponseDto>  cancelBooking(@PathVariable Long id) {
+        BookingResponseDto bookingResponseDto = bookingService.cancelBooking(id);
         return ResponseEntity.ok(bookingResponseDto);
     }
 

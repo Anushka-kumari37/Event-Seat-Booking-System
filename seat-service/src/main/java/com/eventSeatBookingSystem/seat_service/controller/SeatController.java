@@ -4,6 +4,7 @@ import com.eventSeatBookingSystem.seat_service.dto.SeatRequestDto;
 import com.eventSeatBookingSystem.seat_service.dto.SeatResponseDto;
 import com.eventSeatBookingSystem.seat_service.entity.Seat;
 import com.eventSeatBookingSystem.seat_service.service.SeatService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class SeatController {
     private SeatService seatService;
 
     @PostMapping
-    public ResponseEntity<SeatResponseDto> createSeat(@RequestBody SeatRequestDto seatRequestDto){
+    public ResponseEntity<SeatResponseDto> createSeat(@Valid @RequestBody SeatRequestDto seatRequestDto){
         SeatResponseDto seatResponseDto = seatService.createSeat(seatRequestDto);
         return ResponseEntity.ok().body(seatResponseDto);
     }
@@ -54,7 +55,7 @@ public class SeatController {
         return  ResponseEntity.ok(responseDto);
     }
 
-    @PatchMapping("/{id}/book")
+    @PutMapping("/{id}/book")
     public  ResponseEntity<SeatResponseDto> bookSeat(@PathVariable Long id){
         SeatResponseDto responseDto = seatService.bookSeat(id);
         return ResponseEntity.ok(responseDto);

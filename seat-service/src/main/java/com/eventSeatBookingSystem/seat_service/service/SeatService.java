@@ -6,6 +6,10 @@ import com.eventSeatBookingSystem.seat_service.dto.SeatRequestDto;
 import com.eventSeatBookingSystem.seat_service.dto.SeatResponseDto;
 import com.eventSeatBookingSystem.seat_service.entity.Seat;
 import com.eventSeatBookingSystem.seat_service.entity.Status;
+import com.eventSeatBookingSystem.seat_service.exception.NoSeatsFoundException;
+import com.eventSeatBookingSystem.seat_service.exception.SeatAlreadyAvailableException;
+import com.eventSeatBookingSystem.seat_service.exception.SeatAlreadyBookedException;
+import com.eventSeatBookingSystem.seat_service.exception.SeatNotFoundException;
 import com.eventSeatBookingSystem.seat_service.repository.SeatRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -48,7 +52,7 @@ public class SeatService {
     public List<SeatResponseDto> getSeats() {
        List<Seat> seat = seatRepository.findAll();
         if(seat.isEmpty()){
-            throw new RuntimeException("Seats are empty");
+            throw new NoSeatsFoundException("Seats are empty");
         }
         return seat.stream().map(this::ConvertToDto).toList();
     }
@@ -56,7 +60,7 @@ public class SeatService {
 
     public SeatResponseDto getSeatById(Long id) {
         Seat seat = seatRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Seat not found"));
+                .orElseThrow(() -> new SeatNotFoundException("Seat not found"));
         return ConvertToDto(seat);
     }
 
@@ -64,7 +68,7 @@ public class SeatService {
     public SeatResponseDto updateSeat(Long id, SeatRequestDto seatRequestDto) {
 
         Seat seat = seatRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Seat not found"));
+                .orElseThrow(() -> new SeatNotFoundException("Seat not found"));
 
         EventResponseDto event =
                 eventClient.getEventId(seatRequestDto.getEventId());
@@ -81,7 +85,7 @@ public class SeatService {
 
     public void deleteById(Long id) {
         Seat seat = seatRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Seat not found"));
+                .orElseThrow(() -> new SeatNotFoundException("Seat not found"));
         seatRepository.delete(seat);
 
     }
@@ -89,7 +93,7 @@ public class SeatService {
     public List<SeatResponseDto> getAvailableSeats(Long eventId){
         List<Seat> seats = seatRepository.findByEventIdAndStatus(eventId, Status.AVAILABLE);
         if(seats.isEmpty()){
-            throw new RuntimeException("Seats are empty");
+            throw new NoSeatsFoundException("Seats are empty");
         }
         return seats.stream().map(this::ConvertToDto).toList();
 
@@ -97,9 +101,9 @@ public class SeatService {
 
     public SeatResponseDto bookSeat(Long id) {
         Seat seat = seatRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Seat not found"));
+                .orElseThrow(() -> new SeatNotFoundException("Seat not found"));
         if(seat.getStatus() == Status.BOOKED){
-            throw new RuntimeException("Seat is already booked");
+            throw new SeatAlreadyBookedException("Seat is already booked");
         }
         seat.setStatus(Status.BOOKED);
         Seat seat1 = seatRepository.save(seat);
@@ -108,9 +112,9 @@ public class SeatService {
 
     public SeatResponseDto releaseSeat(Long id) {
         Seat seat = seatRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Seat not found"));
+                .orElseThrow(() -> new SeatNotFoundException("Seat not found"));
         if(seat.getStatus() == Status.AVAILABLE){
-            throw new RuntimeException("Seat is already booked");
+            throw new SeatAlreadyAvailableException("Seat is already available");
         }
         seat.setStatus(Status.AVAILABLE);
         Seat seat1 = seatRepository.save(seat);

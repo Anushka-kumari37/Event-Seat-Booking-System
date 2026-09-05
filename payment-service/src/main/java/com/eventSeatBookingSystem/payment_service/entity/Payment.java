@@ -22,7 +22,7 @@ public class Payment {
     private Long bookingId;
     private Long userId;
     private  Double amount;
-    @Enumerated(EnumType.STRING)
+
     private LocalDateTime paymentDate;
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;

@@ -6,6 +6,8 @@ import com.eventSeatBookingSystem.payment_service.dto.PaymentRequestDto;
 import com.eventSeatBookingSystem.payment_service.dto.PaymentResponseDto;
 import com.eventSeatBookingSystem.payment_service.entity.Payment;
 import com.eventSeatBookingSystem.payment_service.entity.PaymentStatus;
+import com.eventSeatBookingSystem.payment_service.exception.NoPaymentsFoundException;
+import com.eventSeatBookingSystem.payment_service.exception.PaymentNotFoundException;
 import com.eventSeatBookingSystem.payment_service.repository.PaymentRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -52,7 +54,7 @@ public class PaymentService {
     public List<PaymentResponseDto> getAllPayments() {
         List<Payment> payments = paymentRepository.findAll();
         if (payments.isEmpty()) {
-            throw new RuntimeException("No payments found");
+            throw new NoPaymentsFoundException("No payments found");
         }
         return payments.stream().map(this::ConvertToDto).toList();
     }
@@ -60,37 +62,37 @@ public class PaymentService {
 
     public PaymentResponseDto getPaymentById(Long id) {
         Payment payment =  paymentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payment not found with id " +id));
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id " +id));
         return ConvertToDto(payment);
     }
 
     public List<PaymentResponseDto> getPaymentByBooking(Long bookingId) {
         List<Payment> payments = paymentRepository.findByBookingId(bookingId);
         if (payments.isEmpty()) {
-            throw new RuntimeException("No payments found with this booking id " + bookingId);
+            throw new NoPaymentsFoundException("No payments found with this booking id " + bookingId);
         }
         return payments.stream().map(this::ConvertToDto).toList();
     }
 
-    public PaymentResponseDto updatePaymentStatus(Long id, PaymentRequestDto paymentRequestDto) {
+    public PaymentResponseDto updatePaymentStatus(Long id) {
         Payment payment = paymentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payment not found with id " +id));
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found with id " +id));
         payment.setPaymentStatus(PaymentStatus.SUCCESS);
         Payment updatedPayment = paymentRepository.save(payment);
         return ConvertToDto(updatedPayment);
     }
 
-    public PaymentResponseDto refundPayment(Long id, PaymentRequestDto paymentRequestDto) {
+    public PaymentResponseDto refundPayment(Long id) {
         Payment payment = paymentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Payment not found with id " +id));
+                .orElseThrow(() -> new NoPaymentsFoundException("Payment not found with id " +id));
         payment.setPaymentStatus(PaymentStatus.REFUNDED);
        Payment payment1=  paymentRepository.save(payment);
         return ConvertToDto(payment1);
     }
 
-    public PaymentResponseDto failedPayment(Long id, PaymentRequestDto paymentRequestDto) {
+    public PaymentResponseDto failedPayment(Long id) {
         Payment payment = paymentRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Payment not found with id " +id));
+                .orElseThrow(()-> new PaymentNotFoundException("Payment not found with id " +id));
         payment.setPaymentStatus(PaymentStatus.FAILED);
         Payment payment1=  paymentRepository.save(payment);
         return ConvertToDto(payment1);
@@ -99,7 +101,7 @@ public class PaymentService {
     public List<PaymentResponseDto> getPaymentByStatus( PaymentStatus paymentStatus) {
         List<Payment> payments = paymentRepository.findByPaymentStatus(paymentStatus);
         if (payments.isEmpty()) {
-            throw new RuntimeException("No payments found in this status " + paymentStatus);
+            throw new NoPaymentsFoundException("No payments found in this status " + paymentStatus);
         }
         return payments.stream().map(this::ConvertToDto).toList();
     }

@@ -45,14 +45,14 @@ public class EventController {
     }
 
     @PutMapping("/update/{id}")
-    public  ResponseEntity<EventResponseDto> updateEvent(@PathVariable Long id,@PathVariable Long userId, @Valid
+    public  ResponseEntity<EventResponseDto> updateEvent(@PathVariable Long id,@RequestParam Long userId, @Valid
                                                          @RequestBody EventRequestDto requestDto){
         EventResponseDto responseDto = eventService.updateEvent(id, userId, requestDto);
         return ResponseEntity.ok(responseDto);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<EventResponseDto> updateById(@PathVariable Long id, @PathVariable Long userId,@Valid
+    public ResponseEntity<EventResponseDto> updateById(@PathVariable Long id, @RequestParam Long userId,@Valid
                                                        @RequestBody EventPatchRequestDto requestDto){
         EventResponseDto responseDto = eventService.updateById(id,userId,requestDto);
         return ResponseEntity.ok(responseDto);

@@ -7,6 +7,7 @@ import com.eventSeatBookingSystem.event_service.dto.EventResponseDto;
 import com.eventSeatBookingSystem.event_service.dto.UserResponseDto;
 import com.eventSeatBookingSystem.event_service.entity.Event;
 import com.eventSeatBookingSystem.event_service.entity.EventStatus;
+import com.eventSeatBookingSystem.event_service.exception.*;
 import com.eventSeatBookingSystem.event_service.repository.EventRepository;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -58,7 +59,7 @@ public class EventService {
     public List<EventResponseDto> getAllEvents() {
         List<Event> events = eventRepository.findAll();
         if (events.isEmpty()){
-            throw new RuntimeException("Events are not available");
+            throw new NoEventsFoundException("Events are not available");
         }
         return events.stream().map(this::ConvertToDto).toList();
     }
@@ -66,7 +67,7 @@ public class EventService {
 
     public EventResponseDto getById(Long id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Event is not found with this id"));
+                .orElseThrow(()-> new EventNotFoundException("Event is not found with this id"));
         return ConvertToDto(event);
 
     }
@@ -74,16 +75,16 @@ public class EventService {
     public List<EventResponseDto> getByName(String name) {
         List<Event> events = eventRepository.findByName(name);
         if(events.isEmpty()){
-            throw new RuntimeException(name + " Events are not available");
+            throw new NoEventsFoundException(name + " Events are not available");
         }
         return events.stream().map(this::ConvertToDto).toList();
     }
 
     public EventResponseDto updateEvent(Long id, Long userId, EventRequestDto requestDto) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Event is not available with this id"));
+                .orElseThrow(()-> new EventNotFoundException("Event is not available with this id"));
         if (!event.getCreatedBy().equals(userId)) {
-            throw new RuntimeException("You are not authorized to update this event");
+            throw new UnauthorizedEventException("You are not authorized to update this event");
         }
         event.setName(requestDto.getName());
         event.setLocation(requestDto.getLocation());
@@ -99,10 +100,10 @@ public class EventService {
 
     public EventResponseDto updateById(Long id,Long userId, EventPatchRequestDto requestDto) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Event is not available for this id"));
+                .orElseThrow(()-> new EventNotFoundException("Event is not available for this id"));
 
         if (!event.getCreatedBy().equals(userId)) {
-            throw new RuntimeException("You are not authorized to update this event");
+            throw new UnauthorizedEventException("You are not authorized to update this event");
         }
 
         if(requestDto.getName()!=null){
@@ -134,46 +135,55 @@ public class EventService {
 
     public void deleteById(Long id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Event is not available"));
+                .orElseThrow(()-> new EventNotFoundException("Event is not available"));
         eventRepository.deleteById(id);
     }
 
     public List<EventResponseDto> getByLocation(String location){
         List<Event> event = eventRepository.findByLocation(location);
         if (event.isEmpty()){
-            throw new RuntimeException("Events are not available for this location");
+            throw new NoEventsFoundException("Events are not available for this location");
         }
         return event.stream().map(this::ConvertToDto).toList();
     }
 
     public List<EventResponseDto> getUpcomingEvents() {
         List<Event> events = eventRepository.findByDateAfter(LocalDate.now());
+        if (events.isEmpty()){
+            throw new NoEventsFoundException("Events are not available on upcoming date");
+        }
         return events.stream().map(this::ConvertToDto).toList();
     }
 
     public List<EventResponseDto> getEventsByDate(LocalDate date){
         List<Event> events = eventRepository.findByDate(date);
+        if (events.isEmpty()){
+            throw new NoEventsFoundException("Events are not available on date");
+        }
         return events.stream().map(this::ConvertToDto).toList();
     }
 
     public List<EventResponseDto> getByPriceRange(Double min, Double max) {
         List<Event> event = eventRepository.findByPriceBetween(min,max);
+        if (event.isEmpty()){
+            throw new NoEventsFoundException("Events are not available on price range");
+        }
         return event.stream().map(this::ConvertToDto).toList();
     }
 
     public EventResponseDto cancelEvent(Long id,Long userId) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(()-> new RuntimeException("Event is not present with this id "));
+                .orElseThrow(()-> new EventNotFoundException("Event is not present with this id "));
 
         if (!event.getCreatedBy().equals(userId)) {
-            throw new RuntimeException(
+            throw new UnauthorizedEventException(
                     "You are not authorized to cancel this event");
         }
         if(event.getStatus()== EventStatus.CANCELLED){
-            throw new RuntimeException("Event is already cancelled");
+            throw new EventAlreadyCancelledException("Event is already cancelled");
         }
         if(event.getStatus()==EventStatus.COMPLETED){
-            throw  new RuntimeException("Completed event can not be cancelled");
+            throw  new CompletedEventCancellationException("Completed event can not be cancelled");
         }
 
         event.setStatus(EventStatus.CANCELLED);
@@ -185,20 +195,20 @@ public class EventService {
 
         Event event = eventRepository.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException("Event is not present with this id"));
+                        new EventNotFoundException("Event is not present with this id"));
 
 
         if (!event.getCreatedBy().equals(userId)) {
-            throw new RuntimeException(
+            throw new UnauthorizedEventException(
                     "You are not authorized to complete this event");
         }
 
         if (event.getStatus() == EventStatus.COMPLETED) {
-            throw new RuntimeException("Event is already completed");
+            throw new EventAlreadyCompletedException("Event is already completed");
         }
 
         if (event.getStatus() == EventStatus.CANCELLED) {
-            throw new RuntimeException(
+            throw new CancelledEventCompletionException(
                     "Cancelled event cannot be marked as completed");
         }
 
