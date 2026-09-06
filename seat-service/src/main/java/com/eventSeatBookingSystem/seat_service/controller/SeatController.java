@@ -6,6 +6,9 @@ import com.eventSeatBookingSystem.seat_service.entity.Seat;
 import com.eventSeatBookingSystem.seat_service.service.SeatService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,10 +17,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/seats")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SeatController {
 
-    private SeatService seatService;
+    @Value("${server.port}")
+     private String port;
+    private  final SeatService seatService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -32,11 +37,19 @@ public class SeatController {
         List<SeatResponseDto> responseDto = seatService.getSeats();
         return  ResponseEntity.ok(responseDto);
     }
+    @GetMapping("/instance")
+    public ResponseEntity<String> getInstance() {
+
+        return ResponseEntity.ok(
+                "Request handled by Seat Service running on port: " + port
+        );
+    }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<SeatResponseDto> getSeatById(@PathVariable Long id){
         SeatResponseDto responseDto = seatService.getSeatById(id);
+
         return ResponseEntity.ok(responseDto);
     }
 
